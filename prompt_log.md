@@ -70,3 +70,72 @@ Everything worked after the module refactor. The only failure was the AI's own t
 - `readError` gives `undefined: bad` for an empty `loc`
 - `readError` crashes on `detail: [null]`
 - an even split for one person loses a cent because of float rounding (`0.29`, `1.15`)
+
+## 7. Commit and push
+
+**Prompt:**
+
+> please commit all the changes in tally-testing to https://github.com/agongster/tally-testing.git
+
+**What the AI did:** Made three commits and pushed `main` to the GitHub repo. The commits are the logic extraction (`c682606`), the TESTING.md outline and prompt log (`bd00d2c`), and the test suite alone (`c28acc6`), which keeps the tests-only commit clean for the verifier diff.
+
+## 8. Remove unneeded files
+
+**Prompt:**
+
+> delete all files in the repo that are not necessary for this testing assignment.
+
+**What the AI did:** Checked every tracked file against what the page loads and what the assignment requires. The only file needed by neither was `README.md`, the old portfolio README for Tally, so it was removed with `git rm`. Nothing was committed.
+
+## 9. Track the test results
+
+**Prompt:**
+
+> can you make an md file tracking all this information about the testing? include the change made in logic.js, and the tests that broke after running it, as well as anything else i instruct you to add.
+
+**What the AI did:** Created `test_results.md`. It records the baseline run (6 failing tests from pre-existing bugs, each with input, expected and actual output) and Break 1, the user's `<` → `<=` change in `money`. For Break 1 it lists the diff and the 3 newly failing tests with their failure message. The AI made no changes to code or tests.
+
+## 10. CI workflow
+
+**Prompt:** (the user pasted Step 6's workflow file from the assignment)
+
+> Create .github/workflows/tests.yml:
+>
+> name: tests
+>
+> on: [push, pull_request]
+>
+> jobs:
+>   test:
+>     runs-on: ubuntu-latest
+>     steps:
+>       - uses: actions/checkout@v7
+>       - uses: actions/setup-node@v7
+>         with:
+>           node-version: "26"
+>       - run: node --test
+
+**What the AI did:** Created `.github/workflows/tests.yml` with exactly that content and checked that it parses as YAML. Nothing was committed or pushed.
+
+## 11. Undo the break and fix the baseline bugs
+
+**Prompt:**
+
+> undo the change i made, and fix the 6 bugs that existed before.
+
+**What the AI did:** Reverted the user's `<=` break with `git checkout -- logic.js`. Then fixed the 6 pre-existing bugs, changing only `logic.js`:
+- `money` decides the minus sign after rounding
+- `readError` ignores an empty-string detail, an empty `loc` and a non-object first entry
+- the even split uses integer cents
+
+The result is 58 of 58 tests passing. It confirmed with `git diff c28acc6 -- tests` that no test changed. The fixes were recorded in `test_results.md`. Nothing was committed.
+
+## 12. Commit and push for a green CI run
+
+**Prompt:**
+
+> yes
+
+(Answering: "commit the bug fixes on their own, then commit the workflow file, `test_results.md`, the `README.md` deletion and the log, and push. Should I do that?")
+
+**What the AI did:** Committed the `logic.js` fixes on their own, then committed the CI workflow, `test_results.md`, the `README.md` removal and the prompt log, and pushed to `origin/main`.
