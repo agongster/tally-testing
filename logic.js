@@ -5,7 +5,7 @@
 export const money = (value) => {
   const digits = Math.abs(value).toFixed(2);
   // Only show a minus sign if the amount is still negative after rounding to cents.
-  return `${value < 0 && digits !== "0.00" ? "−" : ""}$${digits}`;
+  return `${value > 0 && digits !== "0.00" ? "−" : ""}$${digits}`;
 };
 
 /** FastAPI reports validation problems as a list; flatten either shape to a line. */
