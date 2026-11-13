@@ -19,7 +19,7 @@ test("negative int gets a leading minus sign before the $", () => {
 })
 
 test("negative sign is the Unicode minus, not an ASCII hyphen", () => {
-    assert.notEqual(money(-3), "-$3.00")
+    assert.equal(money(-3).codePointAt(0), 0x2212)
 })
 
 // test zero inputs

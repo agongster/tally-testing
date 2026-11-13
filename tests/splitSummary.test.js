@@ -35,10 +35,9 @@ test("invalid amount shows nothing in exact mode too", () => {
 })
 
 test("amount as a number works the same as a string", () => {
-    assert.deepEqual(
-        splitSummary({ amount: 10, splitType: "even", participantCount: 2 }),
-        splitSummary({ amount: "10", splitType: "even", participantCount: 2 })
-    )
+    const expected = { text: "$5.00 each.", mismatch: false }
+    assert.deepEqual(splitSummary({ amount: 10, splitType: "even", participantCount: 2 }), expected)
+    assert.deepEqual(splitSummary({ amount: "10", splitType: "even", participantCount: 2 }), expected)
 })
 
 // test even split
