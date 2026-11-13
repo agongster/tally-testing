@@ -43,7 +43,7 @@ export function splitSummary({ amount, splitType, exactShares = [], participantC
     const entered = exactShares.reduce((sum, value) => sum + (Number(value) || 0), 0);
     const difference = Number((total - entered).toFixed(2));
     return {
-      mismatch: difference !== 0,
+      mismatch: difference > 0,
       text:
         difference === 0
           ? "The shares add up. ✓"
