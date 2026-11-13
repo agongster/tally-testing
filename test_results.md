@@ -62,3 +62,28 @@ tests are unchanged since the tests-only commit.
 | Even split did `Math.floor(total * 100 / n)`, and `0.29 * 100 = 28.999…` lost a cent | Convert to whole cents with `Math.round(total * 100)`, then divide and compute the leftover in integer cents | even split for one person keeps every cent (0.29 and 1.15) |
 
 **Result:** 58 tests, **58 pass, 0 fail.**
+
+## CI
+
+| Run | Commit | Result | Link |
+|---|---|---|---|
+| Passing | `c349dee` (bug fixes + workflow) | ✅ success | https://github.com/agongster/tally-testing/actions/runs/43497195130 |
+| Failing (deliberate) | `8ae052c` (`money`: `value < 0` → `value > 0`) | ❌ failure, 28 of 58 tests | https://github.com/agongster/tally-testing/actions/runs/43498604131 |
+| Passing (break reverted) | `0a1bf7d` | ✅ success | https://github.com/agongster/tally-testing/actions/runs/43498729347 |
+
+The five break-it changes and the two fake tests are written up in TESTING.md.
+
+## Break 2 (attempted): `money` uses `<=` again, after the fix
+
+**Change** (`logic.js:8`):
+
+```diff
+-  return `${value < 0 && digits !== "0.00" ? "−" : ""}$${digits}`;
++  return `${value <= 0 && digits !== "0.00" ? "−" : ""}$${digits}`;
+```
+
+**Result:** 58 tests, 58 pass, 0 fail, so nothing caught it. That is because the
+change does nothing. `<=` differs from `<` only when `value` is `0`, and then
+`digits` is `"0.00"`, so the second condition already stops the minus sign. The
+function returns the same output for every input, so no test could catch this,
+and it is not a fake test. It was not pushed.

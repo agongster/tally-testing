@@ -138,4 +138,12 @@ The result is 58 of 58 tests passing. It confirmed with `git diff c28acc6 -- tes
 
 (Answering: "commit the bug fixes on their own, then commit the workflow file, `test_results.md`, the `README.md` deletion and the log, and push. Should I do that?")
 
-**What the AI did:** Committed the `logic.js` fixes on their own, then committed the CI workflow, `test_results.md`, the `README.md` removal and the prompt log, and pushed to `origin/main`.
+**What the AI did:** Committed the `logic.js` fixes on their own, then committed the CI workflow, `test_results.md`, the `README.md` removal and the prompt log, and pushed to `origin/main`. CI passed: https://github.com/agongster/tally-testing/actions/runs/43497195130
+
+## 13. Push a deliberate break for a red CI run
+
+**Prompt:**
+
+> i made the change, push it and grab the red run's link.
+
+**What the AI did:** Ran the suite locally before pushing. The user's change (`<` → `<=` in `money`, after the bug fix) left all 58 tests passing, because once the code checks for `"0.00"` the change makes no difference. The AI did not push, recorded the attempt in `test_results.md`, and suggested one-line breaks that would actually fail.
