@@ -6,6 +6,8 @@
  * server-side; this page only renders what it is told and collects input.
  */
 
+import { money, readError, splitSummary } from "./logic.js";
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -43,8 +45,6 @@ themeToggle.addEventListener("click", () => {
 // ---------------------------------------------------------------------------
 
 const $ = (id) => document.getElementById(id);
-const money = (value) =>
-  `${value < 0 ? "−" : ""}$${Math.abs(value).toFixed(2)}`;
 
 function escapeHtml(text) {
   const div = document.createElement("div");
@@ -160,18 +160,6 @@ async function api(path, { method = "GET", body = null, auth = true } = {}) {
     throw new ApiError(readError(payload, response.status), response.status);
   }
   return payload;
-}
-
-/** FastAPI reports validation problems as a list; flatten either shape to a line. */
-function readError(payload, status) {
-  const detail = payload && payload.detail;
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail) && detail.length) {
-    const first = detail[0];
-    const field = Array.isArray(first.loc) ? first.loc[first.loc.length - 1] : "input";
-    return `${field}: ${first.msg}`;
-  }
-  return `Something went wrong (${status}).`;
 }
 
 // ---------------------------------------------------------------------------
@@ -889,47 +877,19 @@ function renderParticipants() {
 
 /** A live preview of the split. The server recomputes all of this on submit. */
 function updateSplitSummary() {
-  const amountField = $("expense-form").elements.amount;
-  const total = Number(amountField.value);
   const summary = $("split-summary");
-
-  if (!total || total <= 0) {
-    summary.textContent = "";
-    summary.classList.remove("mismatch");
-    return;
-  }
-
-  if (currentSplitType() === "exact") {
-    const entered = [...$("participants").querySelectorAll("[data-exact-share]")].reduce(
-      (sum, input) => sum + (Number(input.value) || 0),
-      0
-    );
-    const difference = Number((total - entered).toFixed(2));
-    summary.classList.toggle("mismatch", difference !== 0);
-    summary.textContent =
-      difference === 0
-        ? "The shares add up. ✓"
-        : difference > 0
-        ? `${money(difference)} left to assign.`
-        : `${money(-difference)} over the expense total.`;
-    return;
-  }
-
-  const checked = [...$("participants").querySelectorAll("[data-participant]")].filter(
-    (box) => box.checked
-  );
-  summary.classList.remove("mismatch");
-  if (!checked.length) {
-    summary.textContent = "Pick at least one person.";
-    return;
-  }
-  // Mirrors the server's rule: leftover cents go to the earliest members.
-  const each = Math.floor((total * 100) / checked.length) / 100;
-  const leftover = Number((total - each * checked.length).toFixed(2));
-  summary.textContent =
-    leftover === 0
-      ? `${money(each)} each.`
-      : `${money(each)} each, with ${money(leftover)} of rounding spread across the first few.`;
+  const { text, mismatch } = splitSummary({
+    amount: $("expense-form").elements.amount.value,
+    splitType: currentSplitType(),
+    exactShares: [...$("participants").querySelectorAll("[data-exact-share]")].map(
+      (input) => input.value
+    ),
+    participantCount: [...$("participants").querySelectorAll("[data-participant]")].filter(
+      (box) => box.checked
+    ).length,
+  });
+  summary.textContent = text;
+  summary.classList.toggle("mismatch", mismatch);
 }
 
 $("expense-form").addEventListener("input", (event) => {
